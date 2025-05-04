@@ -6,9 +6,7 @@ const DEFAULT = {
 
 const THEME = {
 	playerColor: "#FF6347",
-	gridColor: "#444",
-	gridLightColor: "#aaa",
-	backgroundColor: "#222",
+	lightColor: "rgb(163, 196, 212)",
 	borderRadius: 8,
 	appleColor: "#FF0000",
 	bananaColor: "#FFD700",
@@ -121,64 +119,141 @@ class Grid {
 		if (this.gridZoomAnimationStep < 0) this.gridZoomAnimationStep = 0;
 	}
 
-	draw(renderer, deltaTime) {
+	draw(renderer) {
 		const { width, height, ctx } = renderer;
-
-		ctx.fillStyle = THEME.backgroundColor;
-		ctx.fillRect(0, 0, width, height);
 
 		const squareSize = Math.min(width, height) / this.gridSize;
 
-		ctx.strokeStyle = THEME.gridColor;
-		ctx.lineWidth = width / this.gridSize / 5;
+		ctx.clearRect(0, 0, width, height);
 
-		for (let i = 0; i <= this.gridSize; i++) {
-			ctx.beginPath();
-			ctx.moveTo(i * squareSize, 0);
-			ctx.lineTo(i * squareSize, height);
-			ctx.stroke();
-
-			ctx.beginPath();
-			ctx.moveTo(0, i * squareSize);
-			ctx.lineTo(width, i * squareSize);
-			ctx.stroke();
-		}
-
-		ctx.strokeStyle = THEME.gridLightColor;
+		ctx.strokeStyle = THEME.lightColor;
 		ctx.lineWidth = width / this.gridSize / 50;
 
+		const gradientColor = THEME.lightColor.replace(")", ", .3)");
+		const gradientThickness = width / this.gridSize / 2;
+
+		ctx.canvas.style = `--light-size: ${gradientThickness / 4}px`;
+
 		for (let i = 1; i < this.gridSize; i++) {
+			// vertical gradient
+			const verticalGradient = ctx.createLinearGradient(
+				i * squareSize - gradientThickness,
+				0,
+				i * squareSize + gradientThickness,
+				0
+			);
+
+			verticalGradient.addColorStop(0.3, "transparent");
+			verticalGradient.addColorStop(0.5, gradientColor);
+			verticalGradient.addColorStop(0.7, "transparent");
+
+			ctx.fillStyle = verticalGradient;
+			ctx.fillRect(
+				i * squareSize - gradientThickness,
+				0,
+				i * squareSize,
+				height
+			);
+
 			ctx.beginPath();
 			ctx.moveTo(i * squareSize, 0);
 			ctx.lineTo(i * squareSize, height);
 			ctx.stroke();
+
+			// horizontal gradient
+			const horizontalGradient = ctx.createLinearGradient(
+				0,
+				i * squareSize - gradientThickness,
+				0,
+				i * squareSize + gradientThickness
+			);
+
+			horizontalGradient.addColorStop(0.3, "transparent");
+			horizontalGradient.addColorStop(0.5, gradientColor);
+			horizontalGradient.addColorStop(0.7, "transparent");
+
+			ctx.fillStyle = horizontalGradient;
+			ctx.fillRect(
+				0,
+				i * squareSize - gradientThickness,
+				height,
+				i * squareSize
+			);
 
 			ctx.beginPath();
 			ctx.moveTo(0, i * squareSize);
 			ctx.lineTo(width, i * squareSize);
 			ctx.stroke();
 		}
-		
+
 		// Border
-		ctx.lineWidth = width / this.gridSize / 25;
-
 		ctx.save();
-
 		ctx.resetTransform();
-
-		ctx.beginPath();
-		ctx.moveTo(THEME.borderRadius, 0);
-		ctx.lineTo(width - THEME.borderRadius, 0);
-		ctx.quadraticCurveTo(width, 0, width, THEME.borderRadius);
-		ctx.lineTo(width, height - THEME.borderRadius);
-		ctx.quadraticCurveTo(width, height, width - THEME.borderRadius, height);
-		ctx.lineTo(THEME.borderRadius, height);
-		ctx.quadraticCurveTo(0, height, 0, height - THEME.borderRadius);
-		ctx.lineTo(0, THEME.borderRadius);
-		ctx.quadraticCurveTo(0, 0, THEME.borderRadius, 0);
-		ctx.stroke();
-
+		ctx.strokeRect(
+			ctx.lineWidth / 2,
+			ctx.lineWidth / 2,
+			width - ctx.lineWidth,
+			height - ctx.lineWidth
+		);
 		ctx.restore();
+
+		// Border light
+
+		const topGradient = ctx.createLinearGradient(
+			0, 0,
+			0, gradientThickness / 2
+		);
+
+		topGradient.addColorStop(0, gradientColor);
+		topGradient.addColorStop(1, "transparent");
+
+		ctx.fillStyle = topGradient;
+		ctx.fillRect(
+			0, 0,
+			width, gradientThickness / 2
+		);
+
+		const bottomGradient = ctx.createLinearGradient(
+			0, height,
+			0, height - gradientThickness / 2
+		);
+
+		bottomGradient.addColorStop(0, gradientColor);
+		bottomGradient.addColorStop(1, "transparent");
+
+		ctx.fillStyle = bottomGradient;
+		ctx.fillRect(
+			0, height - gradientThickness / 2,
+			width, gradientThickness / 2
+		);
+
+		const leftGradient = ctx.createLinearGradient(
+			0, 0,
+			gradientThickness / 2, 0
+		);
+
+		leftGradient.addColorStop(0, gradientColor);
+		leftGradient.addColorStop(1, "transparent");
+
+		ctx.fillStyle = leftGradient;
+		ctx.fillRect(
+			0, 0,
+			gradientThickness / 2, height
+		);
+
+		const rightGradient = ctx.createLinearGradient(
+			width, 0,
+			width - gradientThickness / 2, 0
+		);
+
+		rightGradient.addColorStop(0, gradientColor);
+		rightGradient.addColorStop(1, "transparent");
+
+		ctx.fillStyle = rightGradient;
+		ctx.fillRect(
+			width - gradientThickness / 2, 0,
+			gradientThickness / 2, height
+		);
 	}
 }
 
@@ -365,7 +440,7 @@ class Player {
 			this.movesQueue.shift();
 		}
 
-		// Move player in actual direction
+		// Move player at his direction
 		switch (this.direction) {
 			case "up":
 				this.y -= this.speed * deltaTime;
@@ -509,8 +584,10 @@ class Renderer {
 		this.canvas = document.querySelector(selector);
 		this.ctx = this.canvas.getContext("2d");
 
+		this.lastWidth = this.canvas.width;
+		this.lastHeight = this.canvas.height;
+
 		this.resize();
-		window.addEventListener("resize", this.resize);
 
 		this.fps = 0;
 
@@ -535,6 +612,13 @@ class Renderer {
 	}
 
 	render() {
+		const { width, height } = this.canvas.getBoundingClientRect();
+		if (this.lastWidth != width || this.lastHeight != height) {
+			this.resize();
+			this.lastWidth = width;
+			this.lastHeight = height;
+		}
+
 		const timeNow = performance.now();
 		const deltaTime = (timeNow - this.lastTime) / 1000;
 		this.lastTime = timeNow;
@@ -628,7 +712,7 @@ class CollisionDetector {
 class Game {
 	constructor(selector) {
 		this.events = {
-			over() {}
+			over() {},
 		};
 
 		this.sounds = new Sounds();
@@ -645,6 +729,8 @@ class Game {
 		this.food = new Food();
 		this.player = new Player(this.grid);
 
+		this.speedIncrease = 3;
+
 		this.collisionDetector = new CollisionDetector();
 
 		this.spawner = new Spawner();
@@ -655,7 +741,7 @@ class Game {
 			this.score += foodItem.points * 10;
 			this.level += 1;
 			this.grid.increaseSize();
-			this.player.speed += 3;
+			this.player.speed += this.speedIncrease;
 
 			this.food.moveByGridIncrease();
 			this.player.moveByGridIncrease();
@@ -716,7 +802,7 @@ class Game {
 	}
 
 	start() {
-		this.player.movesQueue = [];
+		this.player.reset(this.grid);
 		this.tick.run();
 	}
 
