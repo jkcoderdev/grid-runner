@@ -1,6 +1,6 @@
 @font-face {
-    font-family: 'DarkForest';
-    src: url(assets/fonts/darkforest/darkforest.ttf);
+    font-family: 'Blocky';
+    src: url(assets/fonts/kimberley/kimberley.otf);
 }
 
 * {
@@ -11,8 +11,8 @@
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
-    font-family: 'DarkForest', 'Poppins', sans-serif;
-    letter-spacing: 3px;
+    font-family: 'Blocky', 'Poppins', sans-serif;
+    letter-spacing: 1px;
 }
 
 :root {
@@ -215,7 +215,7 @@ ol li:before {
 }
 
 .popup {
-    width: 50%;
+    width: 50vmin;
     min-width: 400px;
     background-color: transparent;
     color: white;
