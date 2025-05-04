@@ -9,6 +9,7 @@ const THEME = {
 	gridColor: "#444",
 	gridLightColor: "#aaa",
 	backgroundColor: "#222",
+	borderRadius: 8,
 	appleColor: "#FF0000",
 	bananaColor: "#FFD700",
 	cherryColor: "#FF1493",
@@ -120,7 +121,7 @@ class Grid {
 		if (this.gridZoomAnimationStep < 0) this.gridZoomAnimationStep = 0;
 	}
 
-	draw(renderer) {
+	draw(renderer, deltaTime) {
 		const { width, height, ctx } = renderer;
 
 		ctx.fillStyle = THEME.backgroundColor;
@@ -132,13 +133,11 @@ class Grid {
 		ctx.lineWidth = width / this.gridSize / 5;
 
 		for (let i = 0; i <= this.gridSize; i++) {
-			// pionowe linie
 			ctx.beginPath();
 			ctx.moveTo(i * squareSize, 0);
 			ctx.lineTo(i * squareSize, height);
 			ctx.stroke();
 
-			// poziome linie
 			ctx.beginPath();
 			ctx.moveTo(0, i * squareSize);
 			ctx.lineTo(width, i * squareSize);
@@ -148,19 +147,38 @@ class Grid {
 		ctx.strokeStyle = THEME.gridLightColor;
 		ctx.lineWidth = width / this.gridSize / 50;
 
-		for (let i = 0; i <= this.gridSize; i++) {
-			// pionowe linie
+		for (let i = 1; i < this.gridSize; i++) {
 			ctx.beginPath();
 			ctx.moveTo(i * squareSize, 0);
 			ctx.lineTo(i * squareSize, height);
 			ctx.stroke();
 
-			// poziome linie
 			ctx.beginPath();
 			ctx.moveTo(0, i * squareSize);
 			ctx.lineTo(width, i * squareSize);
 			ctx.stroke();
 		}
+		
+		// Border
+		ctx.lineWidth = width / this.gridSize / 25;
+
+		ctx.save();
+
+		ctx.resetTransform();
+
+		ctx.beginPath();
+		ctx.moveTo(THEME.borderRadius, 0);
+		ctx.lineTo(width - THEME.borderRadius, 0);
+		ctx.quadraticCurveTo(width, 0, width, THEME.borderRadius);
+		ctx.lineTo(width, height - THEME.borderRadius);
+		ctx.quadraticCurveTo(width, height, width - THEME.borderRadius, height);
+		ctx.lineTo(THEME.borderRadius, height);
+		ctx.quadraticCurveTo(0, height, 0, height - THEME.borderRadius);
+		ctx.lineTo(0, THEME.borderRadius);
+		ctx.quadraticCurveTo(0, 0, THEME.borderRadius, 0);
+		ctx.stroke();
+
+		ctx.restore();
 	}
 }
 
@@ -429,6 +447,9 @@ class Player {
 		this.y = grid.gridSize >> 1;
 		this.speed = DEFAULT.PLAYER_SPEED;
 		this.direction = "none";
+		this.movesQueue = [];
+		this.nextDirection = "none";
+		this.lastPosition = new PlayerPosition(this);
 	}
 }
 
@@ -606,6 +627,10 @@ class CollisionDetector {
 
 class Game {
 	constructor(selector) {
+		this.events = {
+			over() {}
+		};
+
 		this.sounds = new Sounds();
 		this.textures = new Textures();
 
@@ -636,13 +661,11 @@ class Game {
 			this.player.moveByGridIncrease();
 
 			this.spawner.spawnFood(this.grid, this.food, this.player, 1);
-
-			console.log(foodItem);
 		});
 
-		this.renderer = new Renderer(selector, (renderer) => {
+		this.renderer = new Renderer(selector, (renderer, deltaTime) => {
 			this.grid.animate(renderer);
-			this.grid.draw(renderer);
+			this.grid.draw(renderer, deltaTime);
 
 			this.food.draw(renderer, this.textures, this.grid);
 			this.player.draw(renderer, this.grid);
@@ -661,8 +684,7 @@ class Game {
 					this.grid
 				)
 			) {
-				alert("Game over! Your score is " + this.score + " and your level is " + this.level);
-				this.reset();
+				this.events.over();
 			}
 
 			this.food.forEach((foodItem, foodId) => {
@@ -678,6 +700,10 @@ class Game {
 		});
 	}
 
+	on(eventName, callback) {
+		this.events[eventName] = callback;
+	}
+
 	reset() {
 		this.grid.reset();
 		this.food.reset();
@@ -690,6 +716,7 @@ class Game {
 	}
 
 	start() {
+		this.player.movesQueue = [];
 		this.tick.run();
 	}
 

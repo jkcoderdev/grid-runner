@@ -3,14 +3,66 @@
     <head>
         <meta charset="UTF-8">
         <title>Grid Runner</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <canvas id="canvas"></canvas>
+        <div class="baner">
+            <h1>Grid Runner 1.0</h1>
+            <span class="small">(Canvas Game)</span>
+        </div>
+        <div class="container">
+            <canvas id="canvas"></canvas>
+            <div class="summary" onclick="continueGame()">
+                <h1 class="title rotating">Game over</h1>
+                <p class="info"></p>
+                <p class="bottom">Click here or press SPACE to continue</p>
+            </div>
+        </div>
         <!-- <script src="script.js"></script> -->
         <script src="game.js"></script>
         <script>
             const game = new Game("#canvas");
+            const container = document.querySelector(".container");
+            const summary = document.querySelector(".summary");
+
+            let isGameOver = false;
+
+            game.on("over", () => {
+                game.pause();
+
+                isGameOver = true;
+
+                summary.querySelector(".info").innerHTML = `
+                LEVEL: ${game.level}<br>
+                SCORE: ${game.score}
+                `;
+
+                summary.classList.add("show");
+                container.classList.add("light");
+            });
+
+            function continueGame() {
+                if (!summary.classList.contains("show") || !isGameOver) return;
+
+                summary.classList.remove("show");
+                container.classList.remove("light");
+                
+                game.reset();
+
+                setTimeout(() => {
+                    game.start();
+
+                    isGameOver = false;
+                }, 500);
+            }
+            
+            document.addEventListener("keydown", e => {
+                if(isGameOver && e.code == "Space") continueGame();
+            });
+
             game.start();
         </script>
     </body>
