@@ -32,23 +32,7 @@
                         </button>
                     </div>
                 </section>
-                <section class="box info hide">
-                    <span class="box-name">How to play</span>
-                    <p>The game is played on a grid board that has a certain size. The player controls a square that can move in any direction. The goal of the game is to eat as much food as possible and get as many points as you can.</p>
-                    <h1>Game Modes</h1>
-                    <h2>Classic Mode</h2>
-                    <p>In Classic Mode, every food eaten gives you points based on the value of the food. There are four types of food in this mode:</p>
-                    <ol>
-                        <li>Apple - gives you 30 points and has the highest chance of spawning at 40%</li>
-                        <li>Pear - gives you 40 points and has a 30% chance of spawning</li>
-                        <li>Banana - gives you 50 points and has a 20% chance of spawning</li>
-                        <li>Cherry - gives you the highest points of all the food at 100 points and is the rarest with a 10% chance of spawning</li>
-                    </ol>
-                    <p>When you eat food in Classic Mode, the size of the grid increases and the player gets faster, making it more challenging to play. You also get a higher level for each food that you eat.</p>
-                    <h2>Endurance Mode</h2>
-                    <p>In Endurance Mode, the player is moving in a grid with a constant size. The goal is to last as long as possible while the player gets faster and faster, making it more challenging to stay alive. Points in this mode are based on the time you last in the game and the number of food that you eat. The type of food you eat does not matter, but you will receive a higher level for each food eaten.</p>
-                    <button class="btn" onclick="this.parentElement.classList.toggle('hide'); this.innerHTML = this.parentElement.classList.contains('hide') ? 'Show more' : 'Hide';">Show more</button>
-                </section>
+                <button class="btn" id="howtoplay-btn">How to play</button>
             </section>
             <div class="content menu">
                 <h1>Select mode</h1>
@@ -76,7 +60,36 @@
                 </section>
             </section>
             <div class="full full-hidden hidden">
-                <canvas id="game"></canvas>
+                <div class="canvas">
+                    <canvas id="game"></canvas>
+                    <div class="summary hide">
+                        <h1>Game over</h1>
+                        <p id="summary">
+                            LEVEL: 0<br>
+                            SCORE: 0
+                        </p>
+                        <p>Click here to continue</p>
+                    </div>
+                </div>
+            </div>
+            <div class="howtoplay-container howtoplay-hidden hidden">
+                <button class="btn btn-center close-btn">X</button>
+                <div class="howtoplay">
+                    <h1>How to play</h1>
+                    <p>The game is played on a grid board that has a certain size. The player controls a square that can move in any direction. The goal of the game is to eat as much food as possible and get as many points as you can.</p>
+                    <h2>Game Modes</h2>
+                    <h3>Classic Mode</h3>
+                    <p>In Classic Mode, every food eaten gives you points based on the value of the food. There are four types of food in this mode:</p>
+                    <ol>
+                        <li>Apple - gives you 30 points and has the highest chance of spawning at 40%</li>
+                        <li>Pear - gives you 40 points and has a 30% chance of spawning</li>
+                        <li>Banana - gives you 50 points and has a 20% chance of spawning</li>
+                        <li>Cherry - gives you the highest points of all the food at 100 points and is the rarest with a 10% chance of spawning</li>
+                    </ol>
+                    <p>When you eat food in Classic Mode, the size of the grid increases and the player gets faster, making it more challenging to play. You also get a higher level for each food that you eat.</p>
+                    <h3>Endurance Mode</h3>
+                    <p>In Endurance Mode, the player is moving in a grid with a constant size. The goal is to last as long as possible while the player gets faster and faster, making it more challenging to stay alive. Points in this mode are based on the time you last in the game and the number of food that you eat. The type of food you eat does not matter, but you will receive a higher level for each food eaten.</p>
+                </div>
             </div>
             <div class="settings-container settings-hidden hidden">
                 <button class="btn btn-center close-btn">X</button>

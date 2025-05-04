@@ -258,7 +258,7 @@ input[type="range"]::-ms-thumb {
     margin: 0 .2em;
 }
 
-.popup-container, .settings-container {
+.popup-container, .settings-container, .howtoplay-container {
     position: fixed;
     top: -100vh;
     left: 0;
@@ -276,12 +276,12 @@ input[type="range"]::-ms-thumb {
         top 1s ease;
 }
 
-.popup-hidden, .settings-hidden {
+.popup-hidden, .settings-hidden, .howtoplay-hidden {
     opacity: 0;
     top: 0;
 }
 
-.popup, .settings {
+.popup, .settings, .howtoplay {
     width: 50vmin;
     min-width: 400px;
     background-color: transparent;
@@ -293,6 +293,7 @@ input[type="range"]::-ms-thumb {
     gap: 16px;
 }
 
+.howtoplay-container .close-btn,
 .popup-container .close-btn,
 .settings-container .close-btn {
     aspect-ratio: 1/1;
@@ -350,17 +351,82 @@ input[type="range"]::-ms-thumb {
     text-transform: uppercase;
 }
 
+.howtoplay {
+    height: 80%;
+    overflow-y: auto;
+    position: relative;
+    width: 80vmin;
+}
+
+.howtoplay h1,
+.howtoplay h2,
+.howtoplay h3 {
+    text-align: center;
+}
+
+.howtoplay h1 {
+    font-size: 48px;
+}
+
+.howtoplay h2 {
+    font-size: 32px;
+}
+
+.howtoplay h3 {
+    font-size: 24px;
+}
+
 .settings h1 {
     text-align: center;
 }
 
-.full canvas {
+.full .canvas {
     --light-size: 1vmin;
     aspect-ratio: 1/1;
     height: 100vw;
     transform: scale(.8);
     border: 0;
     box-shadow: 0 0 var(--light-size) 0 var(--light-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.canvas > * {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.summary {
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    font-size: 4vmin;
+    text-align: center;
+    top: -100%;
+    padding-top: 100%;
+    height: 200%;
+    opacity: 1;
+    transition:
+        opacity 1s ease-in-out,
+        top 1s ease-in-out;
+}
+
+.summary.hide {
+    opacity: 0;
+    top: 0;
+}
+
+.summary :last-child {
+    position: absolute;
+    bottom: 16px;
+    width: 100%;
+    text-align: center;
 }
 
 .menu, .full {
@@ -373,7 +439,7 @@ input[type="range"]::-ms-thumb {
 }
 
 @media (min-aspect-ratio: 7/10) {
-    .full canvas {
+    .full .canvas {
         height: 100%;
     }
 }
@@ -529,7 +595,7 @@ input[type="range"]::-ms-thumb {
 }
 
 @media (max-width: 560px) {
-    .full canvas {
+    .full .canvas {
         transform: scale(.9);
     }
 }
@@ -552,7 +618,7 @@ input[type="range"]::-ms-thumb {
         /* height: auto; */
     }
 
-    .container > *:not(.popup-container, .settings-container) {
+    .container > *:not(.popup-container, .settings-container, .howtoplay-container) {
         grid-column: auto;
         width: 100%;
         margin: 0 auto;

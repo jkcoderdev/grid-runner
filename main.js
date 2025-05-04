@@ -83,6 +83,11 @@ const playButton = document.querySelector(".play-btn");
 const settingsContainer = document.querySelector(".settings-container");
 const settingsButton = document.querySelector(".settings-btn");
 const settingsCloseBtn = document.querySelector(".settings-container .close-btn");
+const summaryParagraph = document.querySelector("#summary");
+const summaryContainer = document.querySelector(".summary");
+const howtoplayBtn = document.querySelector("#howtoplay-btn");
+const howtoplayContainer = document.querySelector(".howtoplay-container");
+const howtoplayCloseBtn = document.querySelector(".howtoplay-container .close-btn");
 
 let mode = null;
 
@@ -145,12 +150,20 @@ playButton.addEventListener("click", () => {
     setTimeout(game.start.bind(game), 1 * 1000);
 });
 
+function continueGameClickHandler() {
+    setMenuView();
+    summaryContainer.removeEventListener("click", continueGameClickHandler);
+}
+
 game.on("over", () => {
     game.pause();
 
-    console.log(`SCORE: ${game.score}\nLEVEL: ${game.level}`);
+    summaryParagraph.innerHTML = `SCORE: ${game.score}<br>LEVEL: ${game.level}`;
+    summaryContainer.classList.remove("hide");
 
-    setMenuView();
+    summaryContainer.addEventListener("click", continueGameClickHandler);
+
+    console.log(`SCORE: ${game.score}\nLEVEL: ${game.level}`);
 });
 
 popupCloseBtn.addEventListener("click", hidePopupMenu);
@@ -163,6 +176,16 @@ settingsButton.addEventListener("click", () => {
 settingsCloseBtn.addEventListener("click", () => {
     settingsContainer.classList.add("settings-hidden");
     setTimeout(() => settingsContainer.classList.add("hidden"), 1 * 1000);
+});
+
+howtoplayBtn.addEventListener("click", () => {
+    howtoplayContainer.classList.remove("hidden");
+    setTimeout(() => howtoplayContainer.classList.remove("howtoplay-hidden"), 0);
+});
+
+howtoplayCloseBtn.addEventListener("click", () => {
+    howtoplayContainer.classList.add("howtoplay-hidden");
+    setTimeout(() => howtoplayContainer.classList.add("hidden"), 1 * 1000);
 });
 
 modeButtons.forEach(modeBtn => {
@@ -210,6 +233,8 @@ function setMenuView() {
 }
 
 function setGameView() {
+    summaryContainer.classList.add("hide");
+
     menuElements.forEach(menuElement => {
         menuElement.classList.add("menu-hidden");
         setTimeout(() => {
