@@ -1,3 +1,29 @@
+/* ------------- MUSIC ------------- */
+
+const musicFrame = document.querySelector("#musicFrame");
+const audioElement = musicFrame.contentDocument.createElement("audio");
+audioElement.loop = true;
+audioElement.autoplay = true;
+audioElement.id = "music";
+musicFrame.contentDocument.body.appendChild(audioElement);
+const music = musicFrame.contentDocument.querySelector("#music");
+
+function playMusic(name) {
+    if (name == "menu") {
+        // music.src = "assets/music/cleyton-rx_underwater.mp3";
+        music.src = "assets/music/kim-lightyear_the-call.mp3";
+    } else if (name == "game") {
+        music.src = "assets/music/alexandr-zhelanov_brave-space-explorers.mp3";
+    }
+}
+
+function stopMusic() {
+    music.pause();
+    music.currentTime = 0;
+}
+
+playMusic("menu");
+
 /* ------------- GAME -------------- */
 
 const game = new Game("#game");
@@ -7,7 +33,7 @@ game.pause();
 /* -------------- UI --------------- */
 
 const modeButtons = document.querySelectorAll("#mode button");
-const difficultyButtons = document.querySelectorAll("#difficulty button");
+const difficultyForm = document.querySelector("#difficulty");
 const popupMenuContainer = document.querySelector(".popup-container");
 const popupCloseBtn = document.querySelector(".popup-container .close-btn");
 const selectedMode = document.querySelector(".popup-container #selected-mode");
@@ -16,19 +42,61 @@ const fullViewElement = document.querySelector(".full");
 const playButton = document.querySelector(".play-btn");
 
 let mode = null;
-let difficulty = null;
 
 playButton.addEventListener("click", () => {
-    if (difficulty == null) return;
+    let difficulty = difficultyForm.difficulty.value;
 
-    let difficultySave = difficulty;
+    if (mode == null || difficulty == "") return;
 
     hidePopupMenu();
     game.reset();
 
-    if (difficultySave == "hard") game.speedIncrease = 6;
-    else if (difficultySave == "medium") game.speedIncrease = 4;
-    else game.speedIncrease = 2;
+    if (mode == "classic") {
+        game.gridIncreasing = true;
+        game.autoSpawning = true;
+		game.timeScoring = false;
+        game.acceleration = 0;
+
+        if (difficulty == "insane") {
+            game.speedIncrease = speed => speed + 8
+            game.spawnRate = 1;
+        } else if (difficulty == "hard") {
+            game.speedIncrease = speed => speed + 4;
+            game.spawnRate = 2;
+        } else if (difficulty == "medium") {
+            game.speedIncrease = speed => speed + 2;
+            game.spawnRate = 3;
+        } else if (difficulty == "easy") {
+            game.speedIncrease = speed => speed + 1;
+            game.spawnRate = 5;
+        }
+
+        if (difficulty == "insane") game.speedIncrease = speed => speed + 8;
+        else if (difficulty == "hard") game.speedIncrease = speed => speed + 4;
+        else if (difficulty == "medium") game.speedIncrease = speed => speed + 2;
+        else if (difficulty == "easy") game.speedIncrease = speed => speed + 1;
+    } else if (mode == "endurance") {
+        game.spawnRate = 1;
+        game.gridIncreasing = false;
+        game.autoSpawning = true;
+		game.timeScoring = true;
+
+        if (difficulty == "insane") {
+            game.acceleration = 2;
+            game.grid.size = 7;
+        } else if (difficulty == "hard") {
+            game.acceleration = 1.5;
+            game.grid.size = 7;
+        } else if (difficulty == "medium") {
+            game.acceleration = 1;
+            game.grid.size = 9;
+        } else if (difficulty == "easy") {
+            game.acceleration = 0.5;
+            game.grid.size = 11;
+        }
+    }
+
+    resetGameSettings();
 
     setGameView();
     setTimeout(game.start.bind(game), 1 * 1000);
@@ -36,6 +104,8 @@ playButton.addEventListener("click", () => {
 
 game.on("over", () => {
     game.pause();
+
+    console.log(`SCORE: ${game.score}\nLEVEL: ${game.level}`);
 
     setMenuView();
 });
@@ -46,21 +116,7 @@ modeButtons.forEach(modeBtn => {
     modeBtn.addEventListener("click", e => {
         const btn = e.target;
 
-        setMode(btn.textContent.toLowerCase());
-    });
-});
-
-popupMenuContainer.addEventListener("click", e => {
-    if (e.target.parentNode.id == "difficulty") return;
-
-    difficulty = null;
-});
-
-difficultyButtons.forEach(difficultyBtn => {
-    difficultyBtn.addEventListener("click", e => {
-        const btn = e.target;
-
-        setDifficulty(btn.textContent.toLowerCase());
+        setMode(btn.innerHTML.toLowerCase());
     });
 });
 
@@ -73,7 +129,6 @@ function showPopupMenu() {
 function hidePopupMenu() {
     popupMenuContainer.classList.add("popup-hidden");
     setTimeout(() => popupMenuContainer.classList.add("hidden"), 1 * 1000);
-    resetGameSettings();
 }
 
 function setMode(modeValue) {
@@ -81,13 +136,9 @@ function setMode(modeValue) {
     showPopupMenu();
 }
 
-function setDifficulty(difficultyValue) {
-    difficulty = difficultyValue;
-}
-
 function resetGameSettings() {
     mode = null;
-    difficulty = null;
+    difficultyForm.reset();
 }
 
 function setMenuView() {
@@ -97,7 +148,10 @@ function setMenuView() {
 
         menuElements.forEach(menuElement => {
             menuElement.classList.remove("hidden");
-            setTimeout(() => menuElement.classList.remove("menu-hidden"), 10);
+            setTimeout(() => {
+                menuElement.classList.remove("menu-hidden");
+                playMusic("menu", 500);
+            }, 10);
         });
     }, 1 * 1000);
 }
@@ -109,7 +163,10 @@ function setGameView() {
             menuElement.classList.add("hidden");
             
             fullViewElement.classList.remove("hidden");
-            setTimeout(() => fullViewElement.classList.remove("full-hidden"), 10);
+            setTimeout(() => {
+                fullViewElement.classList.remove("full-hidden");
+                playMusic("game", 500);
+            }, 10);
         }, 1 * 1000);
     });
 }

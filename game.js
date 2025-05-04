@@ -1,7 +1,8 @@
 const DEFAULT = {
 	GRID_SIZE: 5,
-	GRID_ZOOM_ANIMATION_SPEED: 2,
+	ZOOM_DURATION: 0.5,
 	PLAYER_SPEED: 1,
+	// MAX_VISIBLE_GRID_SIZE: 9,
 };
 
 const THEME = {
@@ -16,14 +17,19 @@ const THEME = {
 
 const FOOD_TYPES = [
 	{
+		type: "pear",
+		points: 4,
+		spawnRate: 0.3,
+	},
+	{
 		type: "apple",
 		points: 3,
-		spawnRate: 0.5,
+		spawnRate: 0.4,
 	},
 	{
 		type: "banana",
 		points: 5,
-		spawnRate: 0.4,
+		spawnRate: 0.2,
 	},
 	{
 		type: "cherry",
@@ -33,14 +39,20 @@ const FOOD_TYPES = [
 ];
 
 const FOOD_TEXTURE_COORDS = {
-	apple: [270, 180, 300, 300],
-	banana: [1540, 580, 450, 450],
-	cherry: [550, 180, 300, 300],
+	banana: [0, 0, 1200, 1200],
+	apple: [1200, 0, 1200, 1200],
+	pear: [2400, 0, 1200, 1200],
+	cherry: [3600, 0, 1200, 1200],
 };
+
+function minmax(n, min, max) {
+	return Math.min(Math.max(n, min), max);
+}
 
 class Sounds {
 	constructor() {
 		this.sounds = {};
+		this.muted = true;
 	}
 
 	add(name, src) {
@@ -58,6 +70,8 @@ class Sounds {
 	}
 
 	play(name) {
+		if (this.muted) return;
+
 		this.sounds[name].play();
 	}
 }
@@ -82,59 +96,133 @@ class Textures {
 	}
 }
 
+class Zoom {
+	constructor() {
+		this.step = 0;
+		this.duration = DEFAULT.ZOOM_DURATION;
+	}
+
+	addStep() {
+		this.step += 1;
+	}
+
+	update(deltaTime) {
+		this.step = Math.max(this.step - deltaTime / this.duration, 0);
+	}
+
+	apply(renderer, grid, player) {
+		const { width, height, ctx } = renderer;
+		const { x, y } = player;
+		const { size } = grid;
+		const { MAX_VISIBLE_GRID_SIZE: max } = DEFAULT;
+		const { step } = this;
+
+		// const scale = size > max ? max / size : 1;
+		// const cx = minmax(width*(x+0.5)/size, width*scale/2, (1 - scale/2) * width);
+		// const cy = minmax(height*(y+0.5)/size, height*scale/2, (1 - scale/2) * height);
+
+		// console.log(scale, cx, cy);
+
+		// const squareSize = Math.min(width, height) / grid.size;
+
+		// // Scale and translate
+		// const scale =
+		// 	grid.size /
+		// 	(grid.size <= DEFAULT.MAX_VISIBLE_GRID_SIZE
+		// 		? grid.size - this.step * 2
+		// 		: DEFAULT.MAX_VISIBLE_GRID_SIZE);
+		// const tx =
+		// 	grid.size <= DEFAULT.MAX_VISIBLE_GRID_SIZE
+		// 		? -squareSize * this.step
+		// 		: (1 - DEFAULT.MAX_VISIBLE_GRID_SIZE / grid.size) *
+		// 		  -width *
+		// 		  minmax(
+		// 				(x - (DEFAULT.MAX_VISIBLE_GRID_SIZE >> 1)) /
+		// 					(grid.size - DEFAULT.MAX_VISIBLE_GRID_SIZE),
+		// 				0,
+		// 				1
+		// 		  );
+		// const ty =
+		// 	grid.size <= DEFAULT.MAX_VISIBLE_GRID_SIZE
+		// 		? -squareSize * this.step
+		// 		: (1 - DEFAULT.MAX_VISIBLE_GRID_SIZE / grid.size) *
+		// 		  -height *
+		// 		  minmax(
+		// 				(y - (DEFAULT.MAX_VISIBLE_GRID_SIZE >> 1)) /
+		// 					(grid.size - DEFAULT.MAX_VISIBLE_GRID_SIZE),
+		// 				0,
+		// 				1
+		// 		  );
+
+		// ctx.save();
+
+		// ctx.scale(1/scale, 1/scale);
+		// ctx.translate(
+		// 	width*scale/2 - cx, height*scale/2 - cy
+		// );
+
+		const scale = size / (size - step * 2);
+		const translation = Math.min(width, height) / size * -step;
+
+		ctx.save();
+
+		ctx.scale(scale, scale);
+		ctx.translate(translation, translation);
+	}
+
+	remove(renderer) {
+		const { ctx } = renderer;
+
+		ctx.restore();
+	}
+
+	draw(renderer, grid, player) {
+		const { width, height, ctx } = renderer;
+		const { x, y } = player;
+		const { size } = grid;
+		const { MAX_VISIBLE_GRID_SIZE: max } = DEFAULT;
+		const { step } = this;
+
+		const scale = size > max ? max / (size - step * 2) : size / (size + step * 2);
+		const cx = minmax(width*(x+0.5)/size, width*scale/2, (1 - scale/2) * width);
+		const cy = minmax(height*(y+0.5)/size, height*scale/2, (1 - scale/2) * height);
+
+		ctx.strokeStyle = "red";
+		ctx.lineWidth = 10;
+
+		ctx.strokeRect(cx - width*scale/2, cy - height*scale/2, width * scale, height * scale);
+	}
+}
+
 class Grid {
 	constructor() {
-		this.gridSize = DEFAULT.GRID_SIZE;
-		this.gridZoomAnimationStep = 0;
-		this.gridZoomAnimationSpeed = DEFAULT.GRID_ZOOM_ANIMATION_SPEED;
+		this.size = DEFAULT.GRID_SIZE;
 	}
 
 	increaseSize() {
-		this.gridZoomAnimationStep = 1;
-		this.gridSize += 2;
+		this.size += 2;
 	}
 
 	reset() {
-		this.gridSize = DEFAULT.GRID_SIZE;
-		this.gridZoomAnimationStep = 0;
-		this.gridZoomAnimationSpeed = DEFAULT.GRID_ZOOM_ANIMATION_SPEED;
-	}
-
-	animate(renderer) {
-		const { width, height, ctx } = renderer;
-
-		const squareSize = Math.min(width, height) / this.gridSize;
-		const scale =
-			this.gridSize / (this.gridSize - this.gridZoomAnimationStep * 2);
-
-		ctx.scale(scale, scale);
-		ctx.translate(
-			-squareSize * this.gridZoomAnimationStep,
-			-squareSize * this.gridZoomAnimationStep
-		);
-	}
-
-	tick(deltaTime) {
-		this.gridZoomAnimationStep -= deltaTime * this.gridZoomAnimationSpeed;
-		if (this.gridZoomAnimationStep < 0) this.gridZoomAnimationStep = 0;
+		this.size = DEFAULT.GRID_SIZE;
 	}
 
 	draw(renderer) {
 		const { width, height, ctx } = renderer;
 
-		const squareSize = Math.min(width, height) / this.gridSize;
+		const squareSize = Math.min(width, height) / this.size;
 
 		ctx.clearRect(0, 0, width, height);
 
 		ctx.strokeStyle = THEME.lightColor;
-		ctx.lineWidth = width / this.gridSize / 50;
+		ctx.lineWidth = width / this.size / 50;
 
 		const gradientColor = THEME.lightColor.replace(")", ", .3)");
-		const gradientThickness = width / this.gridSize / 2;
+		const gradientThickness = width / this.size / 2;
 
 		ctx.canvas.style = `--light-size: ${gradientThickness / 4}px`;
 
-		for (let i = 1; i < this.gridSize; i++) {
+		for (let i = 1; i < this.size; i++) {
 			// vertical gradient
 			const verticalGradient = ctx.createLinearGradient(
 				i * squareSize - gradientThickness,
@@ -200,22 +288,23 @@ class Grid {
 		// Border light
 
 		const topGradient = ctx.createLinearGradient(
-			0, 0,
-			0, gradientThickness / 2
+			0,
+			0,
+			0,
+			gradientThickness / 2
 		);
 
 		topGradient.addColorStop(0, gradientColor);
 		topGradient.addColorStop(1, "transparent");
 
 		ctx.fillStyle = topGradient;
-		ctx.fillRect(
-			0, 0,
-			width, gradientThickness / 2
-		);
+		ctx.fillRect(0, 0, width, gradientThickness / 2);
 
 		const bottomGradient = ctx.createLinearGradient(
-			0, height,
-			0, height - gradientThickness / 2
+			0,
+			height,
+			0,
+			height - gradientThickness / 2
 		);
 
 		bottomGradient.addColorStop(0, gradientColor);
@@ -223,27 +312,30 @@ class Grid {
 
 		ctx.fillStyle = bottomGradient;
 		ctx.fillRect(
-			0, height - gradientThickness / 2,
-			width, gradientThickness / 2
+			0,
+			height - gradientThickness / 2,
+			width,
+			gradientThickness / 2
 		);
 
 		const leftGradient = ctx.createLinearGradient(
-			0, 0,
-			gradientThickness / 2, 0
+			0,
+			0,
+			gradientThickness / 2,
+			0
 		);
 
 		leftGradient.addColorStop(0, gradientColor);
 		leftGradient.addColorStop(1, "transparent");
 
 		ctx.fillStyle = leftGradient;
-		ctx.fillRect(
-			0, 0,
-			gradientThickness / 2, height
-		);
+		ctx.fillRect(0, 0, gradientThickness / 2, height);
 
 		const rightGradient = ctx.createLinearGradient(
-			width, 0,
-			width - gradientThickness / 2, 0
+			width,
+			0,
+			width - gradientThickness / 2,
+			0
 		);
 
 		rightGradient.addColorStop(0, gradientColor);
@@ -251,8 +343,10 @@ class Grid {
 
 		ctx.fillStyle = rightGradient;
 		ctx.fillRect(
-			width - gradientThickness / 2, 0,
-			gradientThickness / 2, height
+			width - gradientThickness / 2,
+			0,
+			gradientThickness / 2,
+			height
 		);
 	}
 }
@@ -272,7 +366,7 @@ class FoodItem {
 	draw(renderer, textures, grid) {
 		const { width, height } = renderer;
 
-		const squareSize = Math.min(width, height) / grid.gridSize;
+		const squareSize = Math.min(width, height) / grid.size;
 
 		textures.draw(
 			renderer,
@@ -396,8 +490,8 @@ class PlayerPosition {
 
 class Player {
 	constructor(grid) {
-		this.x = grid.gridSize >> 1;
-		this.y = grid.gridSize >> 1;
+		this.x = grid.size >> 1;
+		this.y = grid.size >> 1;
 		this.speed = DEFAULT.PLAYER_SPEED;
 		this.direction = "none";
 
@@ -506,7 +600,7 @@ class Player {
 	draw(renderer, grid) {
 		const { ctx, width, height } = renderer;
 
-		const squareSize = Math.min(width, height) / grid.gridSize;
+		const squareSize = Math.min(width, height) / grid.size;
 
 		ctx.fillStyle = THEME.playerColor;
 		ctx.fillRect(
@@ -518,8 +612,8 @@ class Player {
 	}
 
 	reset(grid) {
-		this.x = grid.gridSize >> 1;
-		this.y = grid.gridSize >> 1;
+		this.x = grid.size >> 1;
+		this.y = grid.size >> 1;
 		this.speed = DEFAULT.PLAYER_SPEED;
 		this.direction = "none";
 		this.movesQueue = [];
@@ -533,8 +627,8 @@ class Spawner {
 
 	spawnFood(grid, food, player, amount) {
 		for (let i = 0; i < amount; i++) {
-			let x = Math.floor(Math.random() * grid.gridSize);
-			let y = Math.floor(Math.random() * grid.gridSize);
+			let x = Math.floor(Math.random() * grid.size);
+			let y = Math.floor(Math.random() * grid.size);
 
 			let excludedPositions = [
 				{ x: player.x, y: player.y },
@@ -570,8 +664,8 @@ class Spawner {
 			while (
 				excludedPositions.some((pos) => pos.x === x && pos.y === y)
 			) {
-				x = Math.floor(Math.random() * grid.gridSize);
-				y = Math.floor(Math.random() * grid.gridSize);
+				x = Math.floor(Math.random() * grid.size);
+				y = Math.floor(Math.random() * grid.size);
 			}
 
 			food.spawn(x, y);
@@ -625,6 +719,8 @@ class Renderer {
 
 		this.fps = 1 / deltaTime;
 
+		this.ctx.clearRect(0, 0, width, height);
+
 		this.ctx.save();
 		this.renderCallback(this, deltaTime);
 		this.ctx.restore();
@@ -668,7 +764,7 @@ class CollisionDetector {
 	isPlayerCollidingWithWall(player, grid) {
 		const playerX = player.x,
 			playerY = player.y,
-			gridSize = grid.gridSize;
+			gridSize = grid.size;
 
 		if (
 			playerX < 0 ||
@@ -718,9 +814,9 @@ class Game {
 		this.sounds = new Sounds();
 		this.textures = new Textures();
 
-		this.sounds.add("eating", "assets/sounds/eating.mp3");
+		this.sounds.add("eating", "assets/sounds/eating.mp3");		
 
-		this.textures.add("fruits", "assets/textures/fruits.png");
+		this.textures.add("fruits", "assets/textures/fruits-neon.png");
 
 		this.level = 1;
 		this.score = 0;
@@ -729,40 +825,60 @@ class Game {
 		this.food = new Food();
 		this.player = new Player(this.grid);
 
-		this.speedIncrease = 3;
+		this.zoom = new Zoom();
 
 		this.collisionDetector = new CollisionDetector();
 
 		this.spawner = new Spawner();
 
-		this.spawner.spawnFood(this.grid, this.food, this.player, 3);
+		// Game settings
+		this.speedIncrease = speed => speed + 2;
+		this.acceleration = 0;
+		this.spawnRate = 1;
+		this.gridIncreasing = true;
+		this.autoSpawning = true;
+		this.timeScoring = false;
+
+		this.startTime = Date.now();
+
+		this.spawner.spawnFood(this.grid, this.food, this.player, this.spawnRate);
 
 		this.food.setEatEvent((foodItem) => {
-			this.score += foodItem.points * 10;
+			if (!this.timeScoring) this.score += foodItem.points * 10;
 			this.level += 1;
-			this.grid.increaseSize();
-			this.player.speed += this.speedIncrease;
 
-			this.food.moveByGridIncrease();
-			this.player.moveByGridIncrease();
+			if (this.acceleration == 0) this.player.speed = this.speedIncrease(this.player.speed);
 
-			this.spawner.spawnFood(this.grid, this.food, this.player, 1);
+			if (this.gridIncreasing) {
+				this.grid.increaseSize();
+				this.zoom.addStep();
+				this.food.moveByGridIncrease();
+				this.player.moveByGridIncrease();
+			}
+
+			if (this.autoSpawning) this.spawner.spawnFood(this.grid, this.food, this.player, 1);
 		});
 
 		this.renderer = new Renderer(selector, (renderer, deltaTime) => {
-			this.grid.animate(renderer);
+			this.zoom.update(deltaTime);
+
+			this.zoom.apply(renderer, this.grid, this.player);
+
 			this.grid.draw(renderer, deltaTime);
 
 			this.food.draw(renderer, this.textures, this.grid);
 			this.player.draw(renderer, this.grid);
+
+			this.zoom.remove(renderer, this.grid);
 		});
 
 		this.tick = new Tick((deltaTime) => {
-			let calculatedDeltaTime =
-				deltaTime * (0.1 + 0.9 * (1 - this.grid.gridZoomAnimationStep));
+			// let playerDeltaTime =
+			// 	deltaTime *
+			// 	(1 - DEFAULT.ZOOM_DURATION * Math.min(this.zoom.step, 1));
+			this.player.speed += this.acceleration * deltaTime;
 
-			this.grid.tick(deltaTime);
-			this.player.tick(calculatedDeltaTime);
+			this.player.tick(deltaTime);
 
 			if (
 				this.collisionDetector.isPlayerCollidingWithWall(
@@ -770,6 +886,7 @@ class Game {
 					this.grid
 				)
 			) {
+				if (this.timeScoring) this.score = Math.round((Date.now() - this.startTime) / 1000 * this.level) * 10;
 				this.events.over();
 			}
 
@@ -781,6 +898,7 @@ class Game {
 					)
 				) {
 					this.food.eatFood(foodId);
+					this.sounds.play("eating");
 				}
 			});
 		});
@@ -795,8 +913,6 @@ class Game {
 		this.food.reset();
 		this.player.reset(this.grid);
 
-		this.spawner.spawnFood(this.grid, this.food, this.player, 3);
-
 		this.score = 0;
 		this.level = 1;
 	}
@@ -804,6 +920,10 @@ class Game {
 	start() {
 		this.player.reset(this.grid);
 		this.tick.run();
+
+		this.spawner.spawnFood(this.grid, this.food, this.player, this.spawnRate);
+
+		this.startTime = Date.now();
 	}
 
 	pause() {

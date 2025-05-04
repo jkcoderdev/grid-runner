@@ -10,6 +10,7 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
+        <iframe allow="autoplay" style="display:none;" id="musicFrame"></iframe> 
         <div class="container">
             <header class="header">
                 <div class="logo animated">
@@ -32,7 +33,8 @@
                 <h1>Select mode</h1>
                 <div class="options" id="mode">
                     <button class="btn btn-center">Classic</button>
-                    <button class="btn btn-center">Extreme</button>
+                    <button class="btn btn-center">Endurance</button>
+                    <!-- <button class="btn btn-center">Extreme</button> -->
                 </div>
             </div>
             <section class="sidebar sidebar-right menu">
@@ -50,6 +52,7 @@
                         <li>...</li>
                         <li>...</li>
                     </ol>
+                    <a href="" onclick="return false;">See more</a>
                 </section>
             </section>
             <div class="full full-hidden hidden">
@@ -61,11 +64,16 @@
                     <h1>Selected mode: <span class="mode" id="selected-mode">Classic</span></h1>
                     <br>
                     <h1>Select difficulty</h1>
-                    <div class="options" id="difficulty">
-                        <button class="btn btn-center btn-focus">Easy</button>
-                        <button class="btn btn-center btn-focus">Medium</button>
-                        <button class="btn btn-center btn-focus">Hard</button>
-                    </div>
+                    <form onsubmit="return false;" class="options" id="difficulty">
+                        <input type="radio" name="difficulty" value="easy" id="easy">
+                        <label class="btn btn-center" for="easy">Easy</label>
+                        <input type="radio" name="difficulty" value="medium" id="medium">
+                        <label class="btn btn-center" for="medium">Medium</label>
+                        <input type="radio" name="difficulty" value="hard" id="hard">
+                        <label class="btn btn-center" for="hard">Hard</label>
+                        <input type="radio" name="difficulty" value="insane" id="insane">
+                        <label class="btn btn-center" for="insane">Insane</label>
+                    </form>
                     <br>
                     <button class="btn play-btn">
                         <span>Start game</span>
@@ -76,7 +84,7 @@
         </div>
         <footer class="footer">
             <div class="info">
-                <div>1.0.2</div>
+                <div>1.0.3</div>
                 <div>Copyright by <a href="https://jkcoder.eu" target="_blank">JKCoder</a></div>
             </div>
         </footer>
