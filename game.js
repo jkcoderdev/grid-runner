@@ -52,7 +52,7 @@ function minmax(n, min, max) {
 class Sounds {
 	constructor() {
 		this.sounds = {};
-		this.muted = true;
+		this.volume = 0;
 	}
 
 	add(name, src) {
@@ -70,8 +70,9 @@ class Sounds {
 	}
 
 	play(name) {
-		if (this.muted) return;
+		if (this.volume == 0) return;
 
+		this.sounds[name].volume = this.volume;
 		this.sounds[name].play();
 	}
 }
@@ -116,51 +117,7 @@ class Zoom {
 		const { size } = grid;
 		const { MAX_VISIBLE_GRID_SIZE: max } = DEFAULT;
 		const { step } = this;
-
-		// const scale = size > max ? max / size : 1;
-		// const cx = minmax(width*(x+0.5)/size, width*scale/2, (1 - scale/2) * width);
-		// const cy = minmax(height*(y+0.5)/size, height*scale/2, (1 - scale/2) * height);
-
-		// console.log(scale, cx, cy);
-
-		// const squareSize = Math.min(width, height) / grid.size;
-
-		// // Scale and translate
-		// const scale =
-		// 	grid.size /
-		// 	(grid.size <= DEFAULT.MAX_VISIBLE_GRID_SIZE
-		// 		? grid.size - this.step * 2
-		// 		: DEFAULT.MAX_VISIBLE_GRID_SIZE);
-		// const tx =
-		// 	grid.size <= DEFAULT.MAX_VISIBLE_GRID_SIZE
-		// 		? -squareSize * this.step
-		// 		: (1 - DEFAULT.MAX_VISIBLE_GRID_SIZE / grid.size) *
-		// 		  -width *
-		// 		  minmax(
-		// 				(x - (DEFAULT.MAX_VISIBLE_GRID_SIZE >> 1)) /
-		// 					(grid.size - DEFAULT.MAX_VISIBLE_GRID_SIZE),
-		// 				0,
-		// 				1
-		// 		  );
-		// const ty =
-		// 	grid.size <= DEFAULT.MAX_VISIBLE_GRID_SIZE
-		// 		? -squareSize * this.step
-		// 		: (1 - DEFAULT.MAX_VISIBLE_GRID_SIZE / grid.size) *
-		// 		  -height *
-		// 		  minmax(
-		// 				(y - (DEFAULT.MAX_VISIBLE_GRID_SIZE >> 1)) /
-		// 					(grid.size - DEFAULT.MAX_VISIBLE_GRID_SIZE),
-		// 				0,
-		// 				1
-		// 		  );
-
-		// ctx.save();
-
-		// ctx.scale(1/scale, 1/scale);
-		// ctx.translate(
-		// 	width*scale/2 - cx, height*scale/2 - cy
-		// );
-
+		
 		const scale = size / (size - step * 2);
 		const translation = Math.min(width, height) / size * -step;
 

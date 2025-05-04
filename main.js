@@ -1,16 +1,12 @@
 /* ------------- MUSIC ------------- */
 
-const musicFrame = document.querySelector("#musicFrame");
-const audioElement = musicFrame.contentDocument.createElement("audio");
-audioElement.loop = true;
-audioElement.autoplay = true;
-audioElement.id = "music";
-musicFrame.contentDocument.body.appendChild(audioElement);
-const music = musicFrame.contentDocument.querySelector("#music");
+const music = new Audio();
+music.loop = true;
+music.autoplay = true;
+music.volume = 0;
 
 function playMusic(name) {
     if (name == "menu") {
-        // music.src = "assets/music/cleyton-rx_underwater.mp3";
         music.src = "assets/music/kim-lightyear_the-call.mp3";
     } else if (name == "game") {
         music.src = "assets/music/alexandr-zhelanov_brave-space-explorers.mp3";
@@ -22,13 +18,57 @@ function stopMusic() {
     music.currentTime = 0;
 }
 
-playMusic("menu");
+let interaction = false;
+window.addEventListener("click", startMusic);
+function startMusic() {
+    playMusic("menu");
+    interaction = true;
+    window.removeEventListener("click", startMusic);
+}
 
 /* ------------- GAME -------------- */
 
 const game = new Game("#game");
 game.start();
 game.pause();
+
+/* ----------- SETTINGS ------------ */
+
+function setMusicVolume(volume) {
+    if (music.volume == 0) {
+        music.currentTime = 0;
+        if (interaction) music.play();
+    }
+    music.volume = volume;
+    sessionStorage.setItem("musicVolume", volume);
+}
+
+function setFXVolume(volume) {
+    game.sounds.volume = volume;
+    sessionStorage.setItem("fxVolume", volume);
+}
+
+setFXVolume(sessionStorage.getItem("fxVolume") != null ? parseFloat(sessionStorage.getItem("fxVolume")) : 0);
+setMusicVolume(sessionStorage.getItem("musicVolume") != null ? parseFloat(sessionStorage.getItem("musicVolume")) : 0);
+
+document.querySelector("#music").value = Math.round(music.volume * 10);
+document.querySelector("#fx").value = Math.round(game.sounds.volume * 10);
+
+let musicVolume = 0;
+let fxVolume = 0;
+
+window.addEventListener("blur", () => {
+    musicVolume = music.volume;
+    fxVolume = game.sounds.volume;
+
+    setFXVolume(0);
+    setMusicVolume(0);
+});
+
+window.addEventListener("focus", () => {
+    setFXVolume(fxVolume);
+    setMusicVolume(musicVolume);
+});
 
 /* -------------- UI --------------- */
 
@@ -40,6 +80,9 @@ const selectedMode = document.querySelector(".popup-container #selected-mode");
 const menuElements = document.querySelectorAll(".menu");
 const fullViewElement = document.querySelector(".full");
 const playButton = document.querySelector(".play-btn");
+const settingsContainer = document.querySelector(".settings-container");
+const settingsButton = document.querySelector(".settings-btn");
+const settingsCloseBtn = document.querySelector(".settings-container .close-btn");
 
 let mode = null;
 
@@ -111,6 +154,16 @@ game.on("over", () => {
 });
 
 popupCloseBtn.addEventListener("click", hidePopupMenu);
+
+settingsButton.addEventListener("click", () => {
+    settingsContainer.classList.remove("hidden");
+    setTimeout(() => settingsContainer.classList.remove("settings-hidden"), 0);
+});
+
+settingsCloseBtn.addEventListener("click", () => {
+    settingsContainer.classList.add("settings-hidden");
+    setTimeout(() => settingsContainer.classList.add("hidden"), 1 * 1000);
+});
 
 modeButtons.forEach(modeBtn => {
     modeBtn.addEventListener("click", e => {
