@@ -4,16 +4,20 @@ Grid Runner is a fast-paced arcade-style game played on a dynamic grid. The obje
 
 ## Setup
 
-1. Clone the repo
+#### 1. Clone the repo
 ```bash
 git clone https://github.com/jkcoderdev/grid-runner.git
 ```
-2. Run this command
+#### 2. Run this command
 ```bash
 composer install
 ```
-3. Copy `.env.example` file and name it `.env`
-4. Configure your database in `.env` file
+#### 3. Copy `.env.example` file and name it `.env`
+#### 4. Configure your database in `.env` file
+#### 5. Initialize the database
+```bash
+php artisan db:init
+```
 
 ## Running
 
