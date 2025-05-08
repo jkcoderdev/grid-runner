@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# Skip requests to css, js, or assets directories
+RewriteCond %{REQUEST_URI} ^/(css|js|assets)/ [NC]
+RewriteRule ^ - [L]
+
+# Skip existing files and directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirect everything else to index.php with original path as a GET variable
+RewriteRule ^.*$ /index.php [L,QSA]

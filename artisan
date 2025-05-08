@@ -1,0 +1,80 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/bootstrap/app.php';
+
+$command = $argv[1] ?? null;
+
+switch ($command) {
+    case 'serve':
+        $descriptorspec = [
+            0 => STDIN,
+            1 => STDOUT,
+            2 => STDERR,
+        ];
+
+        $process = proc_open(
+            'php -S localhost:8000 -t public',
+            $descriptorspec,
+            $pipes
+        );
+
+        if (is_resource($process)) {
+            // Wait for the server process to exit (Ctrl + C)
+            proc_close($process);
+        } else {
+            echo "Failed to start PHP built-in server.\n";
+        }
+        break;
+
+    case 'db:init':
+        try {
+            $pdo = new PDO('mysql:host=' . config('database.host'), config('database.username'), config('database.password'));
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            echo "Failed to connect with MySQL server: " . $e->getMessage() . "\n";
+            exit;
+        }
+
+        $db_name = config('database.name');
+
+        // Check if database exists
+        $stmt = $pdo->query("SHOW DATABASES LIKE '$db_name'");
+        if ($stmt->fetch()) {
+            echo "A database called '$db_name' already exists.\nWould you like to overwrite it? [y]es or [n]o: ";
+            $input = strtolower(trim(fgets(STDIN)));
+
+            if ($input !== 'y' && $input !== 'yes') {
+                echo "Cancelled.\n";
+                exit;
+            }
+
+            // Drop the existing database
+            $pdo->exec("DROP DATABASE `$db_name`");
+            echo "Dropped existing database '$db_name'.\n";
+        }
+
+        // Create new database
+        $pdo->exec("CREATE DATABASE `$db_name` CHARACTER SET utf8 COLLATE utf8_general_ci");
+        echo "Created database '$db_name'.\n";
+        unset($pdo);
+
+        $db = connection();
+
+        echo "Importing data...\n";
+        $sql = file_get_contents(__DIR__ . '/database.sql');
+        try {
+            $db->exec($sql);
+            echo "Data imported successfully.\n";
+        } catch (PDOException $e) {
+            echo "Data importing failed: " . $e->getMessage() . "\n";
+        }
+        break;
+
+    default:
+        echo "Available commands:\n";
+        echo "  serve      Start development server\n";
+        echo "  db:init    Initialize the database\n";
+        break;
+}

@@ -1,0 +1,310 @@
+@font-face {
+	font-family: "Blocky";
+	src: url(../assets/fonts/kimberley/kimberley.otf);
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	outline: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-user-drag: none;
+	font-family: "Blocky", sans-serif;
+	letter-spacing: 1px;
+	color: white;
+}
+
+:root {
+	--light-color: #6a9fb9;
+	--light-color-transparent: rgba(163, 196, 212, 0.5);
+    --grid-background: #010f3c;
+	--grid-color: rgb(41, 92, 117);
+	--grid-color-transparent: rgba(41, 92, 117, 0.5);
+	--gradient-color-1: #00223e;
+	--gradient-color-2: #005181;
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: var(--light-color-transparent);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background-color: var(--light-color);
+}
+
+body {
+	background-color: var(--grid-background);
+	background-image:
+        linear-gradient(
+			to bottom,
+			var(--grid-color) 2%,
+			var(--grid-color-transparent) 2%,
+			transparent 10%,
+			transparent 90%,
+			var(--grid-color-transparent) 98%,
+			var(--grid-color) 98%
+		),
+		linear-gradient(
+            to right,
+			var(--grid-color) 2%,
+			var(--grid-color-transparent) 2%,
+			transparent 10%,
+			transparent 90%,
+			var(--grid-color-transparent) 98%,
+			var(--grid-color) 98%
+        );
+	background-size: 10vmin 10vmin;
+	background-position: center;
+	color: white;
+	min-height: 100vh;
+	overflow: hidden;
+	overflow-y: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5vh 16px;
+
+	/* For Firefox */
+	scrollbar-width: thin;
+	scrollbar-color: var(--light-color) transparent;
+}
+
+a {
+	color: var(--light-color-transparent);
+	text-decoration: underline;
+	transition: color 0.2s ease-in-out;
+	text-align: center;
+}
+
+a:hover {
+	color: var(--light-color);
+}
+
+ol,
+ul {
+	margin-left: 2.1em;
+	position: relative;
+}
+
+ol {
+	list-style-type: none;
+}
+
+ol li {
+	counter-increment: list + 1;
+	position: relative;
+	font-size: 1em;
+	line-height: 1.5em;
+}
+
+ol li:before {
+	content: counter(list) ".";
+	position: absolute;
+	top: 0;
+	left: -2.1em;
+}
+
+input[type="range"] {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 100%;
+	height: 16px;
+	border-radius: 8px;
+	margin: 8px 0;
+	background-color: var(--light-color-transparent);
+	outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background-color: var(--light-color);
+	border: 2px var(--light-color) solid;
+	box-shadow: 0px 0px 8px var(--light-color),
+		inset 0px 0px 4px rgba(0, 0, 0, 0.5);
+	cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	background-color: #333;
+	cursor: pointer;
+	margin-top: -8px;
+}
+
+input[type="range"]::-ms-thumb {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	background-color: #333;
+	cursor: pointer;
+	margin-top: -8px;
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+	color: var(--light-color-transparent);
+	opacity: 1; /* Firefox */
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+	color: var(--light-color-transparent);
+}
+
+::-ms-input-placeholder { /* Microsoft Edge */
+	color: var(--light-color-transparent);
+}
+
+.form {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+	padding: 24px;
+	width: 400px;
+	max-width: 100%;
+	border-radius: 16px;
+	backdrop-filter: brightness(80%) blur(8px);
+	border: 2px var(--light-color) solid;
+	box-shadow: 0 0 16px var(--light-color-transparent);
+	position: relative;
+	overflow: hidden;
+}
+
+.form::after {
+	content: '';
+	border: 4px var(--light-color-transparent) solid;
+	border-radius: 16px;
+	position: absolute;
+	inset: -2px;
+	box-shadow: inset 0 0 8px var(--light-color-transparent);
+	pointer-events: none;
+}
+
+.form form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.error {
+	color: rgb(255, 126, 126);
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    min-height: 5vh;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 0 4px var(--light-color);
+    text-align: center;
+}
+
+.footer > div:not(:last-child)::after {
+    content: '|';
+    margin: 0 .2em;
+}
+
+.input {
+    letter-spacing: 1px;
+    font-size: 20px;
+    height: 2em;
+    border-radius: 1em;
+    padding: 0 1em;
+    border: 2px var(--light-color) solid;
+    box-shadow: 
+        0 0 .5em -.125em var(--light-color-transparent),
+        inset 0 -.5em .5em -.5em var(--light-color-transparent);
+    background-color: transparent;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: .6em;
+    width: 100%;
+    margin: 0 auto;
+    color: white;
+    transition: 
+        box-shadow .2s ease-in-out;
+}
+
+.input:hover,
+.input:focus {
+    box-shadow: 
+        0 0 1em 0em var(--light-color-transparent),
+        inset 0 0 .5em 0 var(--light-color-transparent);
+    /* box-shadow: 
+        0 0 1em 0em var(--light-color-transparent),
+        inset 0 .125em .5em 0 var(--light-color-transparent); */
+}
+
+.input[type="text"]::selection,
+.input[type="password"]::selection {
+    background-color: white;
+    color: black;
+}
+
+.btn {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    font-size: 18px;
+    height: 3em;
+    border-radius: 1em;
+    padding: 0 1em;
+    border: 2px var(--light-color) solid;
+    box-shadow: 
+        0 0 .5em -.125em var(--light-color),
+        inset 0 -.5em .5em -.5em var(--light-color);
+    background-color: transparent;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: .6em;
+    width: fit-content;
+    margin: 0 auto;
+    transition: 
+        box-shadow .2s ease-in-out;
+}
+
+.btn:disabled {
+    filter: grayscale(100%) brightness(60%);
+    cursor: not-allowed;
+}
+
+.btn:not(.btn-center) > *:not(span) {
+    height: 50%;
+}
+
+.btn.btn-center {
+    justify-content: center;
+}
+
+.btn:hover:not(:disabled),
+.btn.btn-focus:focus:not(:disabled) {
+    box-shadow: 
+        0 0 1em 0em var(--light-color),
+        inset 0 .125em .5em 0 var(--light-color);
+}
